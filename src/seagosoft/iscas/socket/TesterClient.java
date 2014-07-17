@@ -75,9 +75,9 @@ public class TesterClient {
 			e.printStackTrace();
 		}
 		
-//		ParseISCASPackage parsePack = new ParseISCASPackage();
-//		parsePack.read(tokens1);
-//		parsePack.print();
+		ParseISCASPackage parsePack = new ParseISCASPackage();
+		parsePack.read(tokens1);
+		parsePack.print();
 	}
 	
 	private void init()

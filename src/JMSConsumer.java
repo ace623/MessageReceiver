@@ -1,3 +1,7 @@
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.Socket;
 import java.util.Scanner;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -10,7 +14,10 @@ import javax.jms.TextMessage;
 import javax.jms.Topic;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
-import seagosoft.iscas.socket.*; 
+
+import seagosoft.iscas.socket.ConvertHisenseMQ;
+import seagosoft.iscas.socket.ProduceISCASPackage;
+import seagosoft.iscas.tools.*;
 
 public class JMSConsumer implements Runnable
 {
@@ -33,11 +40,44 @@ public class JMSConsumer implements Runnable
 	private static ReentrantLock lock;
 	// flag
 	private static boolean flag;
-	// Convertor
-//	PackingHisenseMQMessage packMsg;
+	// Converter
+	private static ConvertHisenseMQ    convertMQ;
+	private static ProduceISCASPackage iscasPack;
+	// counter
 	private static int count;
+	// socket
+	private static Socket socket;
+	// socket I/O
+	private static DataOutputStream output;
+	private static DataInputStream  input;
+	// TCP tokens
+	private static byte[] tokens;
+	// time
+	private static Timer timer;
 	
-	public static void main( String args[] )
+	private static void init()
+	{
+		timer = new Timer();
+		convertMQ = new ConvertHisenseMQ();
+		iscasPack = new ProduceISCASPackage();
+	}
+	
+	private static void connect()
+	{
+		final String serverAddr = "52.1.126.70";
+		final int    serverPort = 12351;
+		
+		try {
+			socket = new Socket( serverAddr, serverPort );
+//			socket.setSoTimeout(5000); // set time out as 5s
+			input = new DataInputStream(socket.getInputStream());
+			output = new DataOutputStream(socket.getOutputStream());
+		} catch ( Exception e ) {
+			e.printStackTrace();
+		}	
+	}
+	
+	private static void setApacheMQ()
 	{
 		// 创建线程锁
 		lock = new ReentrantLock();
@@ -55,6 +95,7 @@ public class JMSConsumer implements Runnable
 		// 创建命令行子进程
 		flag = true;
 		thread = new Thread(new JMSConsumer());
+		thread.setDaemon(true);
 		thread.start();
 		
 		// 监听输入
@@ -71,10 +112,71 @@ public class JMSConsumer implements Runnable
 		
 		// 关闭一切连接
 		connector.CloseConnection();
+		
 		scanner.close();
 		System.out.println("the number of records: " + count);
 		System.out.println("exit JMS listener...");
-		System.exit(0);
+		System.exit(0);		
+	}
+
+	private static void genTCPTokens( String MQ )
+	{
+		tokens = iscasPack.produceISCASPackage(0,
+				convertMQ.convertPassingInfo(MQ));
+	}
+	
+	private boolean SendMQToServer( String MQ )
+	{
+		timer.resetTimer();
+		
+		connect();
+		genTCPTokens( MQ );
+		timer.printCurrent( "connection" );
+		
+		if ( !socket.isConnected() )
+		{
+			System.out.println( "connection failed!" );
+			return false;
+		}
+			
+		try {
+			output.write(tokens);
+			output.flush();
+			System.out.println( "write success" );
+			timer.printCurrent( "send" );
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+//		try {
+//			byte[] buf = new byte[128];
+//			timer.printCurrent( "receive 0" );
+//			input.read(buf); //问题出在这个地方2s
+//			timer.printCurrent( "receive 1" );
+//			System.out.println( "success > " + new String(buf) );
+//			timer.printCurrent( "receive 2" );
+//		} catch ( IOException e )
+//		{
+//			e.printStackTrace();
+//		}
+		
+		try {			
+			output.close();
+			input.close();
+			socket.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		timer.printCurrent( "close connection" );
+		return true;
+	}
+
+	public static void main( String args[] )
+	{
+		init();
+		setApacheMQ();	
 	}
 	
 	public void run()
@@ -91,12 +193,10 @@ public class JMSConsumer implements Runnable
 				{
 					TextMessage textMessage = (TextMessage) message;
 					String text = textMessage.getText();
-					System.out.println( text );
+//					System.out.println( text );
+					SendMQToServer( text );
+					
 					count++;
-				}
-				else
-				{
-					System.out.println( message );
 				}				
 			}
 			catch( Exception e )
@@ -107,6 +207,7 @@ public class JMSConsumer implements Runnable
 			lock.unlock();
 		}
 	}
+
 }
 
 class ApacheMQConnector {

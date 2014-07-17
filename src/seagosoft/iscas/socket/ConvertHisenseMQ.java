@@ -79,6 +79,8 @@ public class ConvertHisenseMQ
 	 */
 	public String convertToXMLMark( String item, int packType )
 	{
+		if ( "".equals(item) ) return null;
+		
 		switch ( packType )
 		{
 		case SG_DATA_SOURCE:
@@ -114,7 +116,7 @@ public class ConvertHisenseMQ
 			return "<UploadType>" + item + "</UploadType>\n";
 		case SG_CAPTURING_TIME:
 			return "<WatchTime>" + item + "</WatchTime>\n" +
-		"<WatchTime1>" + item + "</WatchTime>\n" +
+		"<WatchTime1>" + item + "</WatchTime1>\n" +
 		"<WatchTime2>?</WatchTime2>\n" +
 		"<WatchTime3>?</WatchTime3>\n" +
 		"<WatchTime4>?</WatchTime4>\n";
@@ -157,7 +159,7 @@ public class ConvertHisenseMQ
 		
 		// 生成XML文件头
 		String xmlHeader = "<?xml version=\"1.0\" encoding=\"GBK\"?>\n" +
-				"<PackageHead>\n<Version>1.0</Version>\n<Record>1</Record>\n<Desc></Desc>\n</PackageHead>\n";
+				"<Package>\n<PackageHead>\n<Version>1.0</Version>\n<Record>1</Record>\n<Desc></Desc>\n</PackageHead>\n";
 		String xmlData = null;
 		
 		// 解析数据，并开始转换格式
@@ -183,7 +185,7 @@ public class ConvertHisenseMQ
 				convertToXMLMark( records[19], SG_LICENSE_COLOR );
 		
 		// 生成最终的文件数据
-		xmlPackage = xmlInfo + xmlHeader + "<Package>\n<Data>\n" + xmlData + "</Data>\n</Package>\n";
+		xmlPackage = xmlInfo + xmlHeader + "<Data>\n" + xmlData + "</Data>\n</Package>\n";
 		
 		return xmlPackage;
 	}
