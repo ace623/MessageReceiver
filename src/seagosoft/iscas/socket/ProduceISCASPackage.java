@@ -14,18 +14,23 @@ public class ProduceISCASPackage {
 	 */
 	public byte[] produceISCASPackage( int sendTimes, String XML )
 	{
-		tokens = new byte[4096];
-		String tempBuf = XML + "\r\n";
-		byte[] temp = tempBuf.getBytes();
-				
-		tokens[3] = (byte) ((XML.length() & 0xff000000 ) >> 24);
-		tokens[2] = (byte) ((XML.length() & 0x00ff0000 ) >> 16);
-		tokens[1] = (byte) ((XML.length() & 0x0000ff00 ) >> 8);
-		tokens[0] = (byte) (XML.length() & 0x000000ff );	
-		tokens[4] = (byte) sendTimes;
+		String buff = XML + "\r\n";
+		int length = buff.getBytes().length + 5;
+		int xmlLength = length - 66;
+		tokens = new byte[length];
 		
-		for ( int i = 0; i < temp.length; i++ )
-			tokens[i+5] = temp[i];
+		// ¼ÆËã³¤¶È
+		tokens[0] = (byte) (  xmlLength & 0x000000ff );
+		tokens[1] = (byte) (( xmlLength & 0x0000ff00 ) >> 8);
+		tokens[2] = (byte) (( xmlLength & 0x00ff0000 ) >> 16);		
+		tokens[3] = (byte) (( xmlLength & 0xff000000 ) >> 24);			
+		tokens[4] = (byte) ('0' + sendTimes);
+		
+		System.arraycopy(buff.getBytes(), 0, tokens, 5, length - 5 );
+//		for ( int i = 0; i < temp.length; i++ )
+//			tokens[i+5] = temp[i];
+//		
+//		System.out.println( new String(tokens) );
 		
 		return tokens;
 	}	

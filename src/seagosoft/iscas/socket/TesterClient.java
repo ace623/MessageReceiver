@@ -14,39 +14,70 @@ public class TesterClient {
 	private static byte[] tokens1;
 	private static byte[] tokens2;
 	
-	Socket socket; 
-	BufferedReader in; 
-	PrintWriter out; 
+	Socket socket;
+	DataOutputStream output;
+	DataInputStream input;
 	
 	public TesterClient()
 	{
+		final String serverAddress = "52.1.126.70";
+		//final String serverAddress = "10.1.2.132";
+		final int port = 12351;
+		
 		init();
 		
-		try 
-		{ 
-			socket = new Socket("127.0.0.1", 10000); 
-			in = new BufferedReader(new InputStreamReader(socket.getInputStream())); 
-			out = new PrintWriter(socket.getOutputStream(),true); 
-			BufferedReader line = new BufferedReader(new InputStreamReader(System.in)); 
+		try {
+			socket = new Socket( serverAddress, port );
+			socket.setSoTimeout(5000);
+			input = new DataInputStream(socket.getInputStream());
+			output = new DataOutputStream(socket.getOutputStream());
+		}
+		catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 	
-			out.println(line.readLine());
+		
+		try {
+			if ( null == socket || null == input || null == output )
+				throw new NullPointerException();
+		} catch( NullPointerException e )
+		{
+			e.printStackTrace();
+		}
 			
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+		if ( !socket.isConnected() )
+			System.out.println( "connection failed!" );
 			
-			line.close(); 
-			out.close(); 
-			in.close(); 
+		try {
+//			System.out.println( new String(tokens1) );
+			output.write(tokens1);
+			output.flush();
+			System.out.println( "write success" );
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		try {
+			byte[] tokens = new byte[256];
+			int n = input.read(tokens);
+			
+			System.out.println( n );
+			
+			System.out.println( "success > " + new String(tokens) );
+			
+			output.close();
+			input.close();
 			socket.close();
-			
-			System.out.println( "exit..." );
-		} 
-		catch (IOException e) 
-		{} 
+		} catch ( IOException e )
+		{
+			e.printStackTrace();
+		}
+		
+//		ParseISCASPackage parsePack = new ParseISCASPackage();
+//		parsePack.read(tokens1);
+//		parsePack.print();
 	}
 	
 	private void init()
@@ -70,6 +101,7 @@ public class TesterClient {
 	public static void main(String[] args)
 	{
 		new TesterClient();
+		System.out.println( "exit..." );
 	}
 
 }

@@ -24,10 +24,10 @@ class CreateServerThread extends Thread
 		try
 		{
 			String line = in.readLine();
-			while (!line.equals("bye"))
+			while ( !"bye".equals(line) )
 			{
-				String msg = createMessage(line);
-				out.println(msg);
+				System.out.println( line );
+				//out.println(msg);
 				
 				line = in.readLine();
 			}
@@ -51,11 +51,11 @@ class CreateServerThread extends Thread
 	
 } 
 
-public class TestServer extends ServerSocket 
+public class TesterServer extends ServerSocket 
 {
 	private static final int SERVER_PORT = 10000;
 	
-	public TestServer() throws IOException
+	public TesterServer() throws IOException
 	{
 		super(SERVER_PORT);
 		
@@ -79,6 +79,6 @@ public class TestServer extends ServerSocket
 	
 	public static void main(String[] args) throws IOException
 	{
-		new TestServer();	
+		new TesterServer();
 	} 
 } 

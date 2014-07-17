@@ -35,11 +35,13 @@ public class JMSConsumer implements Runnable
 	private static boolean flag;
 	// Convertor
 //	PackingHisenseMQMessage packMsg;
+	private static int count;
 	
 	public static void main( String args[] )
 	{
 		// 创建线程锁
 		lock = new ReentrantLock();
+		count = 0;
 		
 		// 订阅对象
 		ApacheMQConnector connector;
@@ -70,6 +72,7 @@ public class JMSConsumer implements Runnable
 		// 关闭一切连接
 		connector.CloseConnection();
 		scanner.close();
+		System.out.println("the number of records: " + count);
 		System.out.println("exit JMS listener...");
 		System.exit(0);
 	}
@@ -89,6 +92,7 @@ public class JMSConsumer implements Runnable
 					TextMessage textMessage = (TextMessage) message;
 					String text = textMessage.getText();
 					System.out.println( text );
+					count++;
 				}
 				else
 				{

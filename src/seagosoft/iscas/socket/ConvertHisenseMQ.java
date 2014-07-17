@@ -150,7 +150,7 @@ public class ConvertHisenseMQ
 		String records[] = record.split(",");
 		
 		// 生成文件数据类型及文件名
-		String xmlInfo = "KAKOU_" + records[6]; // KAKOU_<device number>
+		String xmlInfo = "KAKOU_" + records[6] + ".XML"; // KAKOU_<device number>
 		if ( xmlInfo.length() < 57 )
 			for ( int i = xmlInfo.length(); i < 57; i++ ) xmlInfo += " ";
 		xmlInfo = "01" + xmlInfo;
