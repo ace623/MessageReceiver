@@ -52,6 +52,7 @@ public class Timer {
 		hold = last;		
 	}
 	
+//	private 
 	/**
 	 * 计时工具，重置时间
 	 */
@@ -59,4 +60,22 @@ public class Timer {
 	{
 		start = hold = last = System.currentTimeMillis();
 	}
+	
+	/**
+	 * 设定倒计时时间，单位毫秒
+	 * @param millseconds
+	 */
+	public void setCountDown( int millseconds )
+	{
+		
+	}
+	
+	/**
+	 * 若超时，返回true
+	 * @return 是否超时
+	 */
+//	public boolean countDown()
+//	{
+//		
+//	}
 }

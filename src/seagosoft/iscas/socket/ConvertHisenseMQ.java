@@ -79,7 +79,7 @@ public class ConvertHisenseMQ
 	 */
 	public String convertToXMLMark( String item, int packType )
 	{
-		if ( "".equals(item) ) return null;
+		if ( "".equals(item) ) return item;
 		
 		switch ( packType )
 		{
@@ -185,7 +185,7 @@ public class ConvertHisenseMQ
 				convertToXMLMark( records[19], SG_LICENSE_COLOR );
 		
 		// 生成最终的文件数据
-		xmlPackage = xmlInfo + xmlHeader + "<Data>\n" + xmlData + "</Data>\n</Package>\n";
+		xmlPackage = xmlInfo + xmlHeader + "<Data>\n" + xmlData + "</Data>\n</Package>\n\r\n";
 		
 		return xmlPackage;
 	}
@@ -196,7 +196,7 @@ public class ConvertHisenseMQ
 	 * @param record   单条违法记录
 	 * @return         转换为XML格式的字符串，包含数据类型、文件名，以及XML文件实体
 	 */
-	public String packIllegalInfo( String record )
+	public String  convertIllegalInfo( String record )
 	{
 		String xmlPackage = null;
 		String records[] = record.split(",");

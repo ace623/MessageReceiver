@@ -1,4 +1,4 @@
-package seagosoft.iscas.socket;
+package seagosoft.iscas.tester;
 
 import java.io.*; 
 import java.net.*; 
@@ -51,11 +51,11 @@ class CreateServerThread extends Thread
 	
 } 
 
-public class TesterServer extends ServerSocket 
+public class SocketServerMultiThreads extends ServerSocket 
 {
 	private static final int SERVER_PORT = 10000;
 	
-	public TesterServer() throws IOException
+	public SocketServerMultiThreads() throws IOException
 	{
 		super(SERVER_PORT);
 		
@@ -79,6 +79,6 @@ public class TesterServer extends ServerSocket
 	
 	public static void main(String[] args) throws IOException
 	{
-		new TesterServer();
+		new SocketServerMultiThreads();
 	} 
 } 

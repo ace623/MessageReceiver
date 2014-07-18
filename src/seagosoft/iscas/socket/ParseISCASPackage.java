@@ -1,11 +1,14 @@
 package seagosoft.iscas.socket;
 
+import java.io.UnsupportedEncodingException;
+
 public class ParseISCASPackage {
 	private int xmlSize;
 	private int sendTimes;
 	private String dataType;
 	private String title;
 	private String xml;
+	private String tail;
 	
 	private int parseSize( byte[] pack )
 	{
@@ -45,16 +48,38 @@ public class ParseISCASPackage {
 	}
 	
 	private String parseXML( byte[] ISCASPack )
-	{
-		if ( xmlSize < 0 || xmlSize > 9999999) return "";
+	{		
+		byte[] buffer = new byte[xmlSize];
 		
-		byte[] buf = new byte[4096];
+		System.arraycopy(ISCASPack, 64, buffer, 0, xmlSize);
 		
-		System.arraycopy(ISCASPack, 64, buf, 0, xmlSize);
+		String str = "";
 		
-		return new String(buf);
+		try {
+			str = new String(buffer, "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+		
+		return str;
 	}
 	
+	private String parseTail( byte[] ISCASPack )
+	{
+		byte[] packTail = new byte[2];
+		
+		if ( 64 + xmlSize > ISCASPack.length ) return "";
+
+		packTail[0] = ISCASPack[64 + xmlSize];
+		packTail[1] = ISCASPack[65 + xmlSize];
+		
+		return new String(packTail);
+	}
+	
+	/**
+	 * 解析内部数据包
+	 * @param ISCASPack
+	 */
 	public void read( byte[] ISCASPack )
 	{
 		xmlSize   = parseSize( ISCASPack );
@@ -62,8 +87,12 @@ public class ParseISCASPackage {
 		dataType  = parseDatatype( ISCASPack ); 
 		title     = parseXMLTitle( ISCASPack );
 		xml       = parseXML( ISCASPack );
+		tail      = parseTail( ISCASPack );
 	}
 	
+	/**
+	 * 打印数据包
+	 */
 	public void print()
 	{
 		System.out.println( "size: " + xmlSize );
@@ -71,5 +100,20 @@ public class ParseISCASPackage {
 		System.out.println( "type: " + dataType );
 		System.out.println( "name: " + title );
 		System.out.println( "data: " + xml );
+	}
+	
+
+	/**
+	 * 检查数据包有效性
+	 * @return 数据包正确(0)，无法解析(-1)，数据项长度错误(1)，包尾错误(2)，数据类型错误(3)
+	 * @throws UnsupportedEncodingException 
+	 */
+	public int checkValid() throws UnsupportedEncodingException
+	{
+		if ( xmlSize != xml.getBytes("UTF-8").length ) return 1;
+		if ( ! "\r\n".equals(tail) ) return 2;
+		if ( Integer.parseInt(dataType) > 4 || Integer.parseInt(dataType) < 0 ) return 3;
+		
+		return 0;
 	}
 }
