@@ -1,6 +1,7 @@
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
@@ -24,114 +25,127 @@ public class ISCASSocketClient {
 	public static final int SG_GENERATE_PASSING_TOKENS = 0;
 	public static final int SG_GENERATE_ILLEGAL_TOKENS = 1;
 	
-	public void SetSocketClient( ConvertHisenseMQ convert, ProduceISCASPackage producer )
+	public ISCASSocketClient()
 	{
-		this.converter = convert;
-		this.producer = producer;
+		converter = new ConvertHisenseMQ();
+		producer  = new ProduceISCASPackage();
 	}
-	
-	public void connect( String servAddr, int port, int millseconds )
-	{
-		try {
-			
-			socket = new Socket( servAddr, port );
-			socket.setSoTimeout(millseconds);
-			input = new DataInputStream(socket.getInputStream());
-			output = new DataOutputStream(socket.getOutputStream());
-			
-		} catch (UnknownHostException e) {
-			
-			e.printStackTrace();
-			
-		} catch (IOException e) {
-			
-			e.printStackTrace();
-			
-		}		
-	}
-	
-	public void connect( String servAddr, int port )
-	{
-		try {
-			
-			socket = new Socket( servAddr, port );
-			input = new DataInputStream(socket.getInputStream());
-			output = new DataOutputStream(socket.getOutputStream());
-			
-		} catch (UnknownHostException e) {
-			
-			e.printStackTrace();
-			
-		} catch (IOException e) {
-			
-			e.printStackTrace();
-			
-		}
-	}
-
 	
 	/**
-	 * 将MQ消息转换之后发送给服务器
-	 * @param mq     来自MQ的消息
-	 * @param type   数据类型，过车数据(0)，闯红灯数据(1) 
+	 * 创建与服务器的TCP连接链路
+	 * @param servAddr    服务器ipv4地址
+	 * @param port        端口号
+	 * @param millseconds 超时连接，单位毫秒
+	 * @throws IOException 
+	 * @throws UnknownHostException 
 	 */
-	public boolean send( String mq, int times, int type )
+	public void connect( String servAddr, int port, int millseconds ) throws UnknownHostException, IOException
 	{
-		try {
+		socket = new Socket( servAddr, port );
+		socket.setSoTimeout(millseconds);
+		input = new DataInputStream(socket.getInputStream());
+		output = new DataOutputStream(socket.getOutputStream());	
+	}
+	
+	/**
+	 * 创建与服务器的TCP连接链路
+	 * @param servAddr    服务器ipv4地址
+	 * @param port        端口号
+	 * @throws IOException 
+	 * @throws UnknownHostException 
+	 */	
+	public void connect( String servAddr, int port ) throws UnknownHostException, IOException
+	{
+		socket = new Socket( servAddr, port );
+		input = new DataInputStream(socket.getInputStream());
+		output = new DataOutputStream(socket.getOutputStream());
+	}
+	
+	/**
+	 * 将MQ消息转换之后发送给服务器，默认编码格式为UTF-8
+	 * @param mq     来自MQ的消息
+	 * @param type   数据类型，过车数据(0)，闯红灯数据(1)
+	 * @throws IOException 
+	 */
+	public boolean send( String mq, int times, int type ) throws IOException
+	{
+		String data;
+		switch( type )
+		{
+		case SG_GENERATE_PASSING_TOKENS:
+			data = converter.convertPassingInfo(mq);
+			sendTokens = producer.produceISCASPackage(times, data);
+			break;
 			
-			String data;
-			switch( type )
-			{
-			case SG_GENERATE_PASSING_TOKENS:
-				data = converter.convertPassingInfo(mq);
-				sendTokens = producer.produceISCASPackage(times, data);
-				break;
-				
-			case SG_GENERATE_ILLEGAL_TOKENS:
-				data = converter.convertIllegalInfo(mq);
-				sendTokens = producer.produceISCASPackage(times, data);
-				break;
-				
-				default: break;
-			}
+		case SG_GENERATE_ILLEGAL_TOKENS:
+			data = converter.convertIllegalInfo(mq);
+			sendTokens = producer.produceISCASPackage(times, data);
+			break;
 			
-		} catch ( Exception e ) {
-			e.printStackTrace();
+			default: break;
 		}
 		
-		try {
-			
-			output.write(sendTokens);
-			output.flush();
-			
-		} catch (IOException e) {
-			e.printStackTrace();
-			return false;
-		}
+		output.write(sendTokens);
+		output.flush();
 		
 		return true;
 	}
+
+	/**
+	 * 发送文本数据，默认编码格式为UTF-8
+	 * @param context
+	 * @throws UnsupportedEncodingException, IOException 
+	 */
+	public void sendMSG( String context ) throws  UnsupportedEncodingException, IOException
+	{
+		output.write( context.getBytes("UTF-8") );
+		output.flush();
+	}
 	
-	public String recv()
+	/**
+	 * 发送文本数据，编码格式由用户指定
+	 * @param context
+	 * @param encoding
+	 * @throws UnsupportedEncodingException
+	 * @throws IOException
+	 */
+	public void sendMSG( String context, String encoding ) throws UnsupportedEncodingException, IOException
+	{
+		output.write( context.getBytes(encoding) );
+		output.flush();
+	}
+	
+	/**
+	 * 接收远程服务器返回的信息，默认编码格式为UTF-8
+	 * @return  String类型的消息数据
+	 * @throws IOException 
+	 * @throws Exception
+	 */
+	public String recv() throws IOException
 	{
 		String str = "";
+
+		int recv = input.read(recvTokens);
 		
-		try {
-			
-			int recv = input.read(recvTokens);
-			
-			if ( recv < 0 )
-			{
-				System.out.println( "received failed" );
-				return str;
-			}
-			
-			str = new String( recvTokens, "UTF-8" );
-			
-		} catch (Exception e) {
-			e.printStackTrace();
+		if ( recv < 0 )
+		{
+			System.out.println( "received failed" );
+			return str;
 		}
 		
+		str = new String( recvTokens, "UTF-8" );
+		
 		return str;
+	}
+	
+	/**
+	 * 关闭数据连接
+	 * @throws IOException
+	 */
+	public void close() throws IOException
+	{
+		input.close();
+		output.close();
+		socket.close();
 	}
 }

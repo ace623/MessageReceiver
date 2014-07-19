@@ -52,7 +52,6 @@ public class Timer {
 		hold = last;		
 	}
 	
-//	private 
 	/**
 	 * 计时工具，重置时间
 	 */
@@ -61,21 +60,37 @@ public class Timer {
 		start = hold = last = System.currentTimeMillis();
 	}
 	
+	private long millseconds;
+	
 	/**
 	 * 设定倒计时时间，单位毫秒
 	 * @param millseconds
 	 */
-	public void setCountDown( int millseconds )
+	public void setTimeout( long millseconds )
 	{
-		
+		this.millseconds = millseconds;
+		hold = System.currentTimeMillis();
+	}
+	
+	public long time()
+	{
+		return last - hold;
 	}
 	
 	/**
 	 * 若超时，返回true
 	 * @return 是否超时
 	 */
-//	public boolean countDown()
-//	{
-//		
-//	}
+	public boolean isTimeout()
+	{
+		last = System.currentTimeMillis();
+		
+		if ( last - hold > millseconds )
+		{
+			hold = System.currentTimeMillis();
+			return true;
+		}
+
+		return false;
+	}
 }

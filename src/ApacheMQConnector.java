@@ -22,41 +22,26 @@ public class ApacheMQConnector {
 	// Topic： 主题消息类型
 	private static Topic topic; 
 	
-	public void close()
+	public void close() throws JMSException
 	{
-		try
-		{ 
-			consumer.close();
-			session.close();
-			connection.close(); 
-		}
-		catch ( Exception e )
-		{
-			e.printStackTrace();
-		}
+		consumer.close();
+		session.close();
 	}
 
-	public void connect( String url, String myTopic )
+	public void connect( String url, String myTopic ) throws JMSException
 	{
-		try
-		{
-			// 创建新的连接
-			connFactory = new ActiveMQConnectionFactory(url);	
-			// 获取连接对象
-			connection = connFactory.createConnection();
-			// 启动
-			connection.start();
-			// create a session
-			session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-			// select a topic
-			topic = session.createTopic(myTopic);
-			// create a message consumer from the session to the topic
-			consumer = session.createConsumer(topic);
-		}
-		catch ( Exception e )
-		{
-			e.printStackTrace();
-		}
+		// 创建新的连接
+		connFactory = new ActiveMQConnectionFactory(url);	
+		// 获取连接对象
+		connection = connFactory.createConnection();
+		// 启动
+		connection.start();
+		// create a session
+		session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+		// select a topic
+		topic = session.createTopic(myTopic);
+		// create a message consumer from the session to the topic
+		consumer = session.createConsumer(topic);
 	}
 
 	public String recv( int millseconds ) throws JMSException
