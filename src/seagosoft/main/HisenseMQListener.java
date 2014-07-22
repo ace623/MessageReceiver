@@ -1,12 +1,13 @@
+package seagosoft.main;
+
 import java.io.IOException;
-import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Scanner;
 import java.util.concurrent.locks.ReentrantLock;
 
 import javax.jms.JMSException;
 
-import seagosoft.iscas.tools.*;
+import seagosoft.iscas.tools.Timer;
 
 class JMSLisener implements Runnable
 {
@@ -197,38 +198,42 @@ class JMSLisener implements Runnable
 	
 }
 
-public class HisenseMQListener
+public class HisenseMQListener implements Runnable
 {		
-	//
+	// 收发数据
 	private static JMSLisener  listener;
 	
 	// 子线程
 	private static Thread thread;
 	
-	private static void init()
-	{
-		listener = new JMSLisener();
-	}
-	
 	public static void main( String[] argv )
 	{
-		init();
+		 listener = new JMSLisener();
 		
 		if ( ! listener.checkInput(argv) )
 		{
 			System.err.println( "invalid parameters, check your input!" );
 			System.err.println( "<usage> url_no info_type back_addr port" );
+			System.exit(0);
 		}
 		
 		thread = new Thread(listener);
 		thread.start();
 		
-		console();
+		Thread console = new Thread( new HisenseMQListener() );
+		console.setDaemon(true);
+		console.start();
+		
+		try {
+			console.join();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 		
 		System.exit( 0 );
 	}
 	
-	private static void console()
+	public void run()
 	{
 		System.out.println("JMS is running!");
 		
@@ -246,14 +251,15 @@ public class HisenseMQListener
 			{
 				System.out.println( "pull from mq: " + listener.getCountOfMQ() );
 				System.out.println( "lost package: " + listener.getCountOfLost() );
-				System.out.println( "package sent: " + listener.getCountOfSend() );				
+				System.out.println( "package sent: " + listener.getCountOfSend() );
+				continue;
 			}
-			if ( "clear".equals(command) )
+			if ( "help".equals(command) )
 			{
-				System.out.println("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
-			}
-			
-			System.out.flush();
+				System.out.println("print ------ print the count of packages out");
+				System.out.println("exit  ------ exit message receiver");
+				continue;
+			}			
 		}
 		
 		scanner.close();
@@ -266,7 +272,6 @@ public class HisenseMQListener
 			e.printStackTrace();
 		}
 		
-		System.out.println( "goodbye!" );
+		System.out.println( "goodbye!" );		
 	}
-
 }
