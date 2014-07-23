@@ -6,6 +6,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import javax.jms.JMSException;
 
+import seagosoft.iscas.exception.UnknownStringException;
 import seagosoft.iscas.tools.Timer;
 
 class JMSListener implements Runnable
@@ -146,48 +147,48 @@ class JMSListener implements Runnable
 		
 		while (flag)
 		{
+			String str = "";
+			
+			// 上锁
 			lock.lock();
 			
 			// 从MQ接收数据
-			String str = "";
 			try {
-				
 				str = connector.recv(10000);
 				count_mq++;
-				
-			} catch (JMSException e1) {
-				e1.printStackTrace();
-				System.err.println("connection timeout");
+			} catch ( JMSException e ) {
+				System.out.println( "receive from mq faield >" + str );
+				e.printStackTrace();
 				continue;
 			}
 			
-			
-			// 连接后端服务器
+			// 连接后台服务器
 			try {
-				
 				client.connect( servAddrString, servPort );
-				
-			} catch (UnknownHostException e1) {
-				
-				e1.printStackTrace();
-				System.err.println("unknown hostname");
+			} catch ( UnknownHostException e ) {
+				System.out.println( "invalid host name >" + servAddrString );
+				e.printStackTrace();
+				count_lost++;
 				break;
-				
-			} catch (IOException e1) {
-				e1.printStackTrace();
-				System.err.println("cannot connect to server");
+			} catch ( IOException e ) {
+				System.out.println( "connection to server failed" );
+				e.printStackTrace();
+				count_lost++;
 				break;
 			}
-			
+				
 			// 发送数据
 			try {
-				
 				if ( passingInfo )
 				{
 					if ( !client.send(str, 0, ISCASSocketClient.SG_GENERATE_PASSING_TOKENS) )
 					{
 						System.out.println( "send failed!" );
 						count_lost++;
+					}
+					else {
+						// 发送成功
+						count_send++;
 					}
 				}	
 				else
@@ -197,25 +198,28 @@ class JMSListener implements Runnable
 						System.out.println( "send failed!" );
 						count_lost++;
 					}
-				}
-				
-			} catch (IOException e1) {
-				e1.printStackTrace();
-				System.err.println("cannot send package to server");
-			}
-			
-			// 发送成功
-			count_send++;
-			
-			// 断开与连接
-			try {
-				client.close();
-			} catch (IOException e) {
+					else {
+						// 发送成功
+						count_send++;						
+					}
+				}				
+			} catch ( IOException e ) {
+				System.out.println( "connection between host and client is shutdown" );
+				count_lost++;
 				e.printStackTrace();
-			}
-			
-			lock.unlock();
+			} catch (UnknownStringException e) {
+				System.out.println( "string is invalid" );
+				count_mq--;
+			} finally {
+				// 断开连接
+				try {
+					client.close();
+				} catch (IOException e1) { e1.printStackTrace(); }
+				// 解锁
+				lock.unlock();
+			}		
 		}
+		
+		if ( lock.isLocked() ) lock.unlock();
 	}
-	
 }

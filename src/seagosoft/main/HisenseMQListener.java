@@ -6,13 +6,20 @@ public class HisenseMQListener implements Runnable
 {		
 	// 收发数据
 	private static JMSListener  listener;
-	
 	// 子线程
 	private static Thread thread;
+	// 信号
+	private static boolean flag;
+	
+	private static void init()
+	{
+		listener = new JMSListener();
+		flag = true;
+	}
 	
 	public static void main( String[] argv )
 	{
-		 listener = new JMSListener();
+		init();
 		
 		if ( ! listener.checkInput(argv) )
 		{
@@ -25,8 +32,22 @@ public class HisenseMQListener implements Runnable
 		thread.start();
 		
 		Thread console = new Thread( new HisenseMQListener() );
-		console.setDaemon(true);
 		console.start();
+		
+		while( flag )
+		{
+			try {
+				Thread.sleep(5000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			
+			System.out.println("\n-----------------------------------");
+			System.out.println( "pull from mq: " + listener.getCountOfMQ() );
+			System.out.println( "lost package: " + listener.getCountOfLost() );
+			System.out.println( "package sent: " + listener.getCountOfSend() );
+			System.out.println("-----------------------------------");
+		}
 		
 		try {
 			console.join();
@@ -45,22 +66,18 @@ public class HisenseMQListener implements Runnable
 		Scanner scanner = new Scanner(System.in);
 		String command = null;
 		
-		while ( true )
-		{
+		while ( flag )
+		{			
 			System.out.print("prompt>");
 			command = scanner.nextLine();
 			
-			if ( "exit".equals(command) ) break;
-			if ( "print".equals(command) )
+			if ( "exit".equals(command) )
 			{
-				System.out.println( "pull from mq: " + listener.getCountOfMQ() );
-				System.out.println( "lost package: " + listener.getCountOfLost() );
-				System.out.println( "package sent: " + listener.getCountOfSend() );
-				continue;
+				flag = false;
+				break;
 			}
 			if ( "help".equals(command) )
 			{
-				System.out.println("print ------ print the count of packages out");
 				System.out.println("exit  ------ exit message receiver");
 				continue;
 			}			

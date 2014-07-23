@@ -1,5 +1,9 @@
 package seagosoft.iscas.socket;
 
+import seagosoft.iscas.exception.UnknownStringException;
+
+
+
 public class ConvertHisenseMQ
 {
 	public static final int SG_DATA_SOURCE = 0; // 数据来源 <XTBH>
@@ -157,11 +161,18 @@ public class ConvertHisenseMQ
 	 * 将海信MQ中获得的通车数据转换为XML格式的字符串
 	 * @param record  单条通车记录
 	 * @return        转换为XML格式的字符串，包含数据类型、文件名，以及XML文件实体
+	 * @throws UnknownStringException 
 	 */
-	public String convertPassingInfo( String record )
+	public String convertPassingInfo( String record ) throws UnknownStringException
 	{
 		String xmlPackage = null;
 		String records[] = record.split(",");
+		
+		if (records.length < 16)
+		{
+			System.out.println( "error> " + record );
+			throw new UnknownStringException("cannot parse the input string");
+		}
 		
 		// 生成文件数据类型及文件名
 		String xmlInfo = "KAKOU_" + records[6] + ".XML"; // KAKOU_<device number>
@@ -209,11 +220,18 @@ public class ConvertHisenseMQ
 	 * 将海信MQ中获得的违法数据转换为XML格式的字符串
 	 * @param record   单条违法记录
 	 * @return         转换为XML格式的字符串，包含数据类型、文件名，以及XML文件实体
+	 * @throws UnknownStringException 
 	 */
-	public String  convertIllegalInfo( String record )
+	public String  convertIllegalInfo( String record ) throws UnknownStringException
 	{
 		String xmlPackage = null;
 		String records[] = record.split(",");
+		
+		if ( records.length < 19 )
+		{
+			System.out.println( "error> " + record );
+			throw new UnknownStringException("cannot parse the input string");
+		}
 		
 		// 生成文件数据类型及文件名
 		String xmlInfo = "ILLEGAL_" + records[10] + ".XML"; // KAKOU_<device number>

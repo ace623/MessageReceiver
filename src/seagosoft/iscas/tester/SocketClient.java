@@ -3,6 +3,7 @@ package seagosoft.iscas.tester;
 import java.io.*; 
 import java.net.*; 
 
+import seagosoft.iscas.exception.UnknownStringException;
 import seagosoft.iscas.socket.ConvertHisenseMQ;
 import seagosoft.iscas.socket.ParseISCASPackage;
 import seagosoft.iscas.socket.ProduceISCASPackage;
@@ -28,7 +29,11 @@ public class SocketClient {
 		//final String serverAddress = "10.1.2.132";
 		final int port = 12351;
 		
-		init();
+		try {
+			init();
+		} catch (UnknownStringException e) {
+			e.printStackTrace();
+		}
 		
 		try {
 			socket = new Socket( serverAddress, port );
@@ -86,7 +91,7 @@ public class SocketClient {
 //		System.out.println( parsePack.checkValid() );
 	}
 	
-	private void init()
+	private void init() throws UnknownStringException
 	{
 		convertMQ = new ConvertHisenseMQ();
 		iscasPack = new ProduceISCASPackage();
