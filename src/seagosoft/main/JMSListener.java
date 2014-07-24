@@ -22,8 +22,8 @@ class JMSListener implements Runnable
 	
 	// 自定义数据类型
 	private ApacheMQConnector   connector; // MQ 连接助手
-	private ISCASSocketClient   client;    // 网络通信助手
 	private Timer               timer;     // 计时器
+	private ISCASSocketClient   client;    // 网络通信助手
 	
 	// socket
 	private String servAddrString;
@@ -101,7 +101,6 @@ class JMSListener implements Runnable
 	private void init( String apacheTopic, int select ) throws JMSException
 	{
 		connector = new ApacheMQConnector();
-		client    = new ISCASSocketClient();
 		timer     = new Timer();
 		lock      = new ReentrantLock();
 		
@@ -145,81 +144,169 @@ class JMSListener implements Runnable
 		timer.resetTimer();
 		timer.setTimeout(5000); // 5 seconds
 		
+		ClientThreads clientThread = null;
 		while (flag)
 		{
-			String str = "";
-			
-			// 上锁
 			lock.lock();
+			
+			String str = "";
 			
 			// 从MQ接收数据
 			try {
 				str = connector.recv(10000);
 				count_mq++;
 			} catch ( JMSException e ) {
-				System.out.println( "receive from mq faield >" + str );
 				e.printStackTrace();
 				continue;
 			}
 			
-			// 连接后台服务器
-			try {
-				client.connect( servAddrString, servPort );
-			} catch ( UnknownHostException e ) {
-				System.out.println( "invalid host name >" + servAddrString );
-				e.printStackTrace();
+			// 连接后台服务器，并发送数据
+			clientThread = new ClientThreads(str, servAddrString, servPort);
+			//clientThread.start();
+			
+			if ( !clientThread.connectServ() )
+			{
 				count_lost++;
-				break;
-			} catch ( IOException e ) {
-				System.out.println( "connection to server failed" );
-				e.printStackTrace();
-				count_lost++;
-				break;
+				clientThread.closeConnection();
+				continue;
 			}
+			if ( !clientThread.sendToServ() )
+			{
+				count_lost++;
+				clientThread.closeConnection();
+				continue;
+			}
+//			if ( !clientThread.recvFromServ() ) 
+//			{
+//				count_lost++;
+//				clientThread.closeConnection();
+//				continue;
+//			}
+			
+			clientThread.closeConnection();
+			count_send++;
+			
+			if ( lock.isLocked() ) lock.unlock();
+		}
+		
+		if ( lock.isLocked() ) lock.unlock();
+	}
+
+	class ClientThreads extends Thread
+	{
+		private String record;
+		
+		private String servAddr;
+		private int servPort;
+		
+		public ClientThreads( String record, String servAddr, int servPort )
+		{
+			this.record = record;
+			this.servAddr = servAddr;
+			this.servPort = servPort;
+			
+			client = new ISCASSocketClient();
+		}
+		
+		public boolean connectServ()
+		{
+			try {
 				
+				client.connect( servAddr, servPort, 30000 );
+				return true;
+				
+			} catch ( UnknownHostException e ) {
+				e.printStackTrace();
+				return false;
+			} catch ( IOException e ) {
+				e.printStackTrace();
+				return false;
+			}
+		}
+
+		public boolean sendToServ()
+		{
 			// 发送数据
 			try {
 				if ( passingInfo )
 				{
-					if ( !client.send(str, 0, ISCASSocketClient.SG_GENERATE_PASSING_TOKENS) )
-					{
-						System.out.println( "send failed!" );
-						count_lost++;
-					}
-					else {
-						// 发送成功
-						count_send++;
-					}
+					if ( !client.send(record, 0,
+							ISCASSocketClient.SG_GENERATE_PASSING_TOKENS) )
+						//System.out.println( "send failed!" );
+						return false;
+					else
+						return true;
 				}	
 				else
 				{
-					if ( !client.send(str, 0, ISCASSocketClient.SG_GENERATE_ILLEGAL_TOKENS) )
-					{
-						System.out.println( "send failed!" );
-						count_lost++;
-					}
-					else {
-						// 发送成功
-						count_send++;						
-					}
-				}				
+					if ( !client.send(record, 0,
+							ISCASSocketClient.SG_GENERATE_ILLEGAL_TOKENS) )
+						return false;
+					else 
+						return true;
+				}
 			} catch ( IOException e ) {
+				
 				System.out.println( "connection between host and client is shutdown" );
-				count_lost++;
 				e.printStackTrace();
+				return false;
+				
 			} catch (UnknownStringException e) {
+				
 				System.out.println( "string is invalid" );
-				count_mq--;
-			} finally {
-				// 断开连接
-				try {
-					client.close();
-				} catch (IOException e1) { e1.printStackTrace(); }
-				// 解锁
-				lock.unlock();
-			}		
+				return true;
+			} 
 		}
 		
-		if ( lock.isLocked() ) lock.unlock();
+		public boolean recvFromServ()
+		{
+			try {
+				
+				String str = client.recv();
+				
+				if ( "".equals(str) ) return false;
+				else return true;
+				
+			} catch (IOException e) {
+				e.printStackTrace();
+				return false;
+			}
+		}
+		
+		public boolean closeConnection()
+		{
+			// 断开连接
+			try { 
+				client.close();
+				return true;
+				
+			} catch (IOException e1) {
+				e1.printStackTrace();
+				return false;	
+			}
+		}
+		
+		public void run() {
+			
+			if ( !connectServ() )
+			{
+				try { client.close(); } 
+				catch (IOException e1) { e1.printStackTrace(); }
+				return ;
+			}
+			
+			if ( !sendToServ() )
+			{
+				try { client.close(); }
+				catch (IOException e1) { e1.printStackTrace(); }
+				return ;
+			}
+			
+			if ( !recvFromServ() )
+			{	try { client.close(); }
+				catch (IOException e1) { e1.printStackTrace(); }
+				return ;
+			}
+		}
 	}
 }

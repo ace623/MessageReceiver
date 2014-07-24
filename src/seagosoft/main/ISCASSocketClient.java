@@ -131,11 +131,13 @@ public class ISCASSocketClient {
 	{
 		String str = "";
 
+		recvTokens = new byte[1024];
+		
 		int recv = input.read(recvTokens);
 		
 		if ( recv < 0 )
 		{
-			System.out.println( "received failed" );
+//			System.out.println( "received failed" );
 			return str;
 		}
 		
