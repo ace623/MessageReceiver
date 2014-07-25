@@ -6,6 +6,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
+import seagosoft.iscas.exception.UnknownStringException;
 import seagosoft.iscas.socket.ConvertHisenseMQ;
 import seagosoft.iscas.socket.ProduceISCASPackage;
 
@@ -67,8 +68,9 @@ public class ISCASSocketClient {
 	 * @param mq     来自MQ的消息
 	 * @param type   数据类型，过车数据(0)，闯红灯数据(1)
 	 * @throws IOException 
+	 * @throws UnknownStringException 
 	 */
-	public boolean send( String mq, int times, int type ) throws IOException
+	public boolean send( String mq, int times, int type ) throws IOException, UnknownStringException
 	{
 		String data;
 		switch( type )
@@ -85,6 +87,9 @@ public class ISCASSocketClient {
 			
 			default: break;
 		}
+		
+		if ( sendTokens.length < 66 )
+			throw new UnknownStringException("tokens length less than 60");
 		
 		output.write(sendTokens);
 		output.flush();
@@ -126,11 +131,13 @@ public class ISCASSocketClient {
 	{
 		String str = "";
 
+		recvTokens = new byte[1024];
+		
 		int recv = input.read(recvTokens);
 		
 		if ( recv < 0 )
 		{
-			System.out.println( "received failed" );
+//			System.out.println( "received failed" );
 			return str;
 		}
 		

@@ -1,5 +1,9 @@
 package seagosoft.iscas.socket;
 
+import seagosoft.iscas.exception.UnknownStringException;
+
+
+
 public class ConvertHisenseMQ
 {
 	public static final int SG_DATA_SOURCE = 0; // 数据来源 <XTBH>
@@ -70,6 +74,18 @@ public class ConvertHisenseMQ
 		return pictUrls;
 	}
 
+ 	/**
+ 	 * 将照片链接，视频链接处理为XML格式的字符串
+ 	 * @param pcitureUrls
+ 	 * @param videlUrl
+ 	 * @return
+ 	 */
+ 	public String convertToXMLUrls( String[] pcitureUrls, String videoUrl )
+ 	{
+ 		String UrlsString = convertToXMLUrls(pcitureUrls);
+ 		
+ 		return UrlsString + "<VideoUrl>" + videoUrl + "</VideoUrl>\n";
+ 	}
 	
 	/**
 	 * 将数一般据转换为XML格式的字符串
@@ -138,18 +154,25 @@ public class ConvertHisenseMQ
 			default : break;
 		}
 		
-		return "<none>" + item + "</none>";
+		return "<None>" + item + "</None>";
 	}
 
 	/**
 	 * 将海信MQ中获得的通车数据转换为XML格式的字符串
 	 * @param record  单条通车记录
 	 * @return        转换为XML格式的字符串，包含数据类型、文件名，以及XML文件实体
+	 * @throws UnknownStringException 
 	 */
-	public String convertPassingInfo( String record )
+	public String convertPassingInfo( String record ) throws UnknownStringException
 	{
 		String xmlPackage = null;
 		String records[] = record.split(",");
+		
+		if (records.length < 16)
+		{
+			System.out.println( "error> " + record );
+			throw new UnknownStringException("cannot parse the input string");
+		}
 		
 		// 生成文件数据类型及文件名
 		String xmlInfo = "KAKOU_" + records[6] + ".XML"; // KAKOU_<device number>
@@ -165,24 +188,26 @@ public class ConvertHisenseMQ
 		// 解析数据，并开始转换格式
 		String[] subUrls = {records[12], records[13], records[14]}; // 照片URL
 		
-		xmlData = convertToXMLMark( records[0], SG_DATA_SOURCE ) +
-				convertToXMLMark( "Z", SG_DATA_TYPE ) +
-				convertToXMLMark( records[1], SG_VEHICLE_LICENSE ) +
-				convertToXMLMark( records[2], SG_LICENSE_TYPE ) +
-				convertToXMLMark( records[3], SG_ADDRESS_NO ) +
-				convertToXMLMark( records[4], SG_ADDRESS_NAME ) +
-				convertToXMLMark( records[5], SG_CAPTURING_TYPE ) +
-				convertToXMLMark( records[6], SG_DEVICE_SN ) +
-				convertToXMLMark( records[7], SG_ROAD_NO ) +
-				convertToXMLMark( records[8], SG_VEHICLE_SPEED ) +
-				convertToXMLMark( records[9], SG_CAPTURING_TIME ) +
-				convertToXMLMark( records[11], SG_VEHICLE_DIRECT ) +
-				convertToXMLUrls( subUrls ) + // picture URLs 
-				convertToXMLMark( records[15], SG_VEHICLE_COLOR );
+		xmlData =
+				convertToXMLMark( "Z", SG_DATA_TYPE ) +              // 数据类型，卡口数据
+				convertToXMLMark( records[0], SG_DATA_SOURCE ) +     // 数据来源
+				convertToXMLMark( records[1], SG_VEHICLE_LICENSE ) + // 车牌号码
+				convertToXMLMark( records[2], SG_LICENSE_TYPE ) +    // 车牌类型
+				convertToXMLMark( records[3], SG_ADDRESS_NO ) +      // 地点编号，12位
+				convertToXMLMark( records[4], SG_ADDRESS_NAME ) +    // 地点名称
+				convertToXMLMark( records[5], SG_CAPTURING_TYPE ) +  // 抓拍类型
+				convertToXMLMark( records[6], SG_DEVICE_SN ) +       // 设备编号，16位
+				convertToXMLMark( records[7], SG_ROAD_NO ) +         // 车道编号
+				convertToXMLMark( records[8], SG_VEHICLE_SPEED ) +   // 车辆速度
+				convertToXMLMark( records[9], SG_CAPTURING_TIME ) +  // 抓拍时间
+				convertToXMLMark( records[11], SG_VEHICLE_DIRECT ) + // 车辆方向
+				convertToXMLUrls( subUrls ) +                        // 照片链接  
+				convertToXMLMark( records[15], SG_VEHICLE_COLOR );   // 车辆颜色
 		
 		if ( records.length > 16 )
-			xmlData += convertToXMLMark( records[16], SG_VEHICLE_LOGO ) +
-				convertToXMLMark( records[19], SG_LICENSE_COLOR );
+			xmlData += 
+				convertToXMLMark( records[16], SG_VEHICLE_LOGO ) +   // 车辆标志
+				convertToXMLMark( records[19], SG_LICENSE_COLOR );   // 拍照颜色
 		
 		// 生成最终的文件数据
 		xmlPackage = xmlInfo + xmlHeader + "<Data>\n" + xmlData + "</Data>\n</Package>\n\r\n";
@@ -195,24 +220,58 @@ public class ConvertHisenseMQ
 	 * 将海信MQ中获得的违法数据转换为XML格式的字符串
 	 * @param record   单条违法记录
 	 * @return         转换为XML格式的字符串，包含数据类型、文件名，以及XML文件实体
+	 * @throws UnknownStringException 
 	 */
-	public String  convertIllegalInfo( String record )
+	public String  convertIllegalInfo( String record ) throws UnknownStringException
 	{
 		String xmlPackage = null;
 		String records[] = record.split(",");
-		//TODO
-		String xmlInfo = null;
+		
+		if ( records.length < 19 )
+		{
+			System.out.println( "error> " + record );
+			throw new UnknownStringException("cannot parse the input string");
+		}
+		
+		// 生成文件数据类型及文件名
+		String xmlInfo = "ILLEGAL_" + records[10] + ".XML"; // KAKOU_<device number>
+		if ( xmlInfo.length() < 57 )
+			for ( int i = xmlInfo.length(); i < 57; i++ ) xmlInfo += " ";
+		xmlInfo = "02" + xmlInfo;
+		
+		// 生成XML文件头
 		String xmlHeader = "<?xml version=\"1.0\" encoding=\"GBK\"?>\n" +
-				"<PackageHead>\n<Version>1.0</Version>\n<Record>1</Record>\n<Desc></Desc>\n</PackageHead>\n";
+				"<Package>\n<PackageHead>\n<Version>1.0</Version>\n<Record>1</Record>\n<Desc></Desc>\n</PackageHead>\n";
 		String xmlData = null;
 		
-		// 解析数据，并转换格式
-		//TODO
+		// 解析数据，并开始转换格式
+		String[] subUrls = {records[15], records[16], records[17]}; // 照片URL
 		
-		// 生成最终的XML文件
-		xmlPackage = xmlInfo + "<Package>\n" + xmlHeader + "<Data>" + xmlData + "</Data>" + "</Package>\n";
+		xmlData = 
+				convertToXMLMark( "B", SG_DATA_TYPE ) +              // 数据类型，闯红灯
+				convertToXMLMark( records[1], SG_LICENSE_TYPE ) +    // 号牌类型
+				convertToXMLMark( records[2], SG_VEHICLE_LICENSE ) + // 车辆号牌
+				convertToXMLMark( records[3], SG_CAPTURING_TIME ) +  // 抓拍时间
+				convertToXMLMark( records[4], SG_ILLEGAL_CODE ) +    // 违法代码
+				convertToXMLMark( records[5], SG_ADDRESS_NO ) +      // 地点编号，12位
+				convertToXMLMark( records[6], SG_ADDRESS_NAME ) +    // 地点名称
+				convertToXMLMark( records[8], SG_DATA_SOURCE ) +     // 数据来源
+				convertToXMLMark( records[9], SG_CAPTURING_TYPE ) +  // 抓拍类型
+				convertToXMLMark( records[10], SG_DEVICE_SN ) +      // 设备编号，16位
+				convertToXMLMark( records[11], SG_VEHICLE_DIRECT ) + // 车辆方向
+				convertToXMLMark( records[12], SG_ROAD_NO ) +        // 车道编号
+				convertToXMLMark( records[13], SG_RED_ARISE_TIME ) + // 红灯亮起时间
+				convertToXMLMark( records[14], SG_RED_FALL_TIME ) +  // 红灯熄灭时间
+				convertToXMLUrls( subUrls, records[18] );
 		
-		return xmlPackage;		
+		if ( records.length > 20 && !"".equals( records[20]) )
+			xmlData += convertToXMLMark( records[20], SG_LICENSE_COLOR ); // 车牌颜色
+
+		
+		// 生成最终的文件数据
+		xmlPackage = xmlInfo + xmlHeader + "<Data>\n" + xmlData + "</Data>\n</Package>\n\r\n";
+		
+		return xmlPackage;
 	}
 
 }
