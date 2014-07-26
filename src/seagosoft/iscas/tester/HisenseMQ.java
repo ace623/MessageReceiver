@@ -1,8 +1,8 @@
 package seagosoft.iscas.tester;
 
-import java.io.UnsupportedEncodingException;
-
-import seagosoft.iscas.socket.*;
+import seagosoft.iscas.socket.ConvertHisenseMQ;
+import seagosoft.iscas.socket.ParseISCASPackage;
+import seagosoft.iscas.socket.ProduceISCASPackage;
 
 public class HisenseMQ {
 

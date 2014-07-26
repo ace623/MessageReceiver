@@ -1,13 +1,15 @@
 package seagosoft.iscas.socket;
 
+import org.apache.activemq.kaha.impl.index.IndexItem;
+
 import seagosoft.iscas.exception.UnknownStringException;
 
 
 
 public class ConvertHisenseMQ
 {
-	public static final int SG_DATA_SOURCE = 0; // 数据来源 <XTBH>
-	public static final int SG_DATA_TYPE   = 1; // 数据包类型 <Type>
+	public static final int SG_DATA_SOURCE     = 0; // 数据来源 <XTBH>
+	public static final int SG_DATA_TYPE       = 1; // 数据包类型 <Type>
 	
 	public static final int SG_VEHICLE_LICENSE = 10; // 车牌号码 <CarNo>
 	public static final int SG_VEHICLE_SPEED   = 11; // 车辆速度 <CarSpeed>
@@ -15,23 +17,43 @@ public class ConvertHisenseMQ
 	public static final int SG_VEHICLE_COLOR   = 13; // 车身颜色 <CarColor>
 	public static final int SG_VEHICLE_LOGO    = 14; // 车辆标志 <CarLogo>
 	
-	public static final int SG_LICENSE_TYPE  = 20; // 车牌类型 <CarType>
-	public static final int SG_LICENSE_COLOR = 21; // 车牌颜色 <PlateColor>
+	public static final int SG_LICENSE_TYPE    = 20; // 车牌类型 <CarType>
+	public static final int SG_LICENSE_COLOR   = 21; // 车牌颜色 <PlateColor>
 	
-	public static final int SG_ADDRESS_NO   = 30; // 采集地点 <AddNo>
-	public static final int SG_ADDRESS_NAME = 31; // 地点名称 <DeviceDesc>
+	public static final int SG_ADDRESS_NO      = 30; // 采集地点 <AddNo>
+	public static final int SG_ADDRESS_NAME    = 31; // 地点名称 <DeviceDesc>
 	
-	public static final int SG_CAPTURING_TYPE = 40; // 抓拍类型 <UploadType>
-	public static final int SG_CAPTURING_TIME = 41; // 抓拍时间 <WatchTime>
+	public static final int SG_CAPTURING_TYPE  = 40; // 抓拍类型 <UploadType>
+	public static final int SG_CAPTURING_TIME  = 41; // 抓拍时间 <WatchTime>
 	
-	public static final int SG_DEVICE_SN  = 50; // 设备编号 <DeviceNo>
+	public static final int SG_DEVICE_SN       = 50; // 设备编号 <DeviceNo>
+	public static final int SG_MANUFACTURER_NO = 51; // 厂商编号 <WorksNo>
 	
-	public static final int SG_ROAD_NO    = 60; // 车道编号 <CarRoad>
+	public static final int SG_ROAD_NO         = 60; // 车道编号 <CarRoad>
 	
-	public static final int SG_ILLEGAL_CODE = 70; // 违法代码 <Wfdm>
+	public static final int SG_ILLEGAL_CODE    = 70; // 违法代码 <Wfdm>
 	
-	public static final int SG_RED_ARISE_TIME = 80; // 红灯亮起时间 <StartTime>
-	public static final int SG_RED_FALL_TIME  = 81; // 红灯结束时间 <EndTime>
+	public static final int SG_RED_ARISE_TIME  = 80; // 红灯亮起时间 <StartTime>
+	public static final int SG_RED_FALL_TIME   = 81; // 红灯结束时间 <EndTime>
+	
+	
+	private String detectManufacturer( String record )
+	{	
+		if ( record.indexOf("hisense") > 0 )
+		{
+			return "<WorksNo>01</WorksNo>\n";
+		}
+		if ( record.indexOf("vion") > 0 )
+		{
+			return "<WorksNo>02</WorksNo>\n";
+		}
+		if ( record.indexOf("pic") > 0 )
+		{
+			return "<WorksNo>03</WorksNo>\n";
+		}
+		
+		return "<WorksNo>10</WorksNo>\n";
+	}
 	
 	/**
 	 * 将照片链接地址转换为XML格式的字符串
@@ -190,6 +212,7 @@ public class ConvertHisenseMQ
 		
 		xmlData =
 				convertToXMLMark( "Z", SG_DATA_TYPE ) +              // 数据类型，卡口数据
+				detectManufacturer( records[12] ) +                  // 厂商编号
 				convertToXMLMark( records[0], SG_DATA_SOURCE ) +     // 数据来源
 				convertToXMLMark( records[1], SG_VEHICLE_LICENSE ) + // 车牌号码
 				convertToXMLMark( records[2], SG_LICENSE_TYPE ) +    // 车牌类型
@@ -249,6 +272,7 @@ public class ConvertHisenseMQ
 		
 		xmlData = 
 				convertToXMLMark( "B", SG_DATA_TYPE ) +              // 数据类型，闯红灯
+				detectManufacturer( records[15] ) +                  // 厂商编号
 				convertToXMLMark( records[1], SG_LICENSE_TYPE ) +    // 号牌类型
 				convertToXMLMark( records[2], SG_VEHICLE_LICENSE ) + // 车辆号牌
 				convertToXMLMark( records[3], SG_CAPTURING_TIME ) +  // 抓拍时间
