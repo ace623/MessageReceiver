@@ -33,6 +33,27 @@ public class ProduceISCASPackage {
 		
 	}
 	
+	public byte[] produceISCASPackage( int times, byte[] bytes )
+	{
+		int xmlLength = bytes.length - 61;
+		int length    = bytes.length + 5;
+		byte[] tokens = new byte[length];
+		
+		// 计算长度
+		tokens[0] = (byte) (  xmlLength & 0x000000ff );
+		tokens[1] = (byte) (( xmlLength & 0x0000ff00 ) >> 8);
+		tokens[2] = (byte) (( xmlLength & 0x00ff0000 ) >> 16);		
+		tokens[3] = (byte) (( xmlLength & 0xff000000 ) >> 24);			
+		tokens[4] = (byte) ( '0' + times );
+		
+		System.arraycopy(bytes, 0, tokens, 5, length - 5);
+		
+		tokens[length - 2] = '\r';
+		tokens[length - 1] = '\n';
+		
+		return tokens;
+	}
+	
 	/**
 	 * 将生成的消息记录按照内部数据包格式进行转换，并将编码转换为UTF-8格式
 	 * @param times    发送次数
