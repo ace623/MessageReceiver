@@ -1,39 +1,37 @@
-package seagosoft.iscas.socket;
+package iscas.seagochen.frontend.parse;
 
 import seagosoft.iscas.exception.UnknownStringException;
 
-
-
-public class ConvertHisenseMQ
-{
-	public static final int SG_DATA_SOURCE     = 0; // 数据来源 <XTBH>
-	public static final int SG_DATA_TYPE       = 1; // 数据包类型 <Type>
-	
-	public static final int SG_VEHICLE_LICENSE = 10; // 车牌号码 <CarNo>
-	public static final int SG_VEHICLE_SPEED   = 11; // 车辆速度 <CarSpeed>
-	public static final int SG_VEHICLE_DIRECT  = 12; // 行驶方向 <Direction>
-	public static final int SG_VEHICLE_COLOR   = 13; // 车身颜色 <CarColor>
-	public static final int SG_VEHICLE_LOGO    = 14; // 车辆标志 <CarLogo>
-	
-	public static final int SG_LICENSE_TYPE    = 20; // 车牌类型 <CarType>
-	public static final int SG_LICENSE_COLOR   = 21; // 车牌颜色 <PlateColor>
-	
-	public static final int SG_ADDRESS_NO      = 30; // 采集地点 <AddNo>
-	public static final int SG_ADDRESS_NAME    = 31; // 地点名称 <DeviceDesc>
-	
-	public static final int SG_CAPTURING_TYPE  = 40; // 抓拍类型 <UploadType>
-	public static final int SG_CAPTURING_TIME  = 41; // 抓拍时间 <WatchTime>
-	
-	public static final int SG_DEVICE_SN       = 50; // 设备编号 <DeviceNo>
-	public static final int SG_MANUFACTURER_NO = 51; // 厂商编号 <WorksNo>
-	
-	public static final int SG_ROAD_NO         = 60; // 车道编号 <CarRoad>
-	
-	public static final int SG_ILLEGAL_CODE    = 70; // 违法代码 <Wfdm>
-	
-	public static final int SG_RED_ARISE_TIME  = 80; // 红灯亮起时间 <StartTime>
-	public static final int SG_RED_FALL_TIME   = 81; // 红灯结束时间 <EndTime>
-	
+public class ParseHisenseMQ {
+	public enum xmlType {
+		SG_DATA_SOURCE,     // 数据来源 <XTBH>
+		SG_DATA_TYPE,       // 数据包类型 <Type>
+		
+		SG_VEHICLE_LICENSE, // 车牌号码 <CarNo>
+		SG_VEHICLE_SPEED,   // 车辆速度 <CarSpeed>
+		SG_VEHICLE_DIRECT,  // 行驶方向 <Direction>
+		SG_VEHICLE_COLOR,   // 车身颜色 <CarColor>
+		SG_VEHICLE_LOGO,    // 车辆标志 <CarLogo>
+		
+		SG_LICENSE_TYPE,    // 车牌类型 <CarType>
+		SG_LICENSE_COLOR,   // 车牌颜色 <PlateColor>
+		
+		SG_ADDRESS_NO,      // 采集地点 <AddNo>
+		SG_ADDRESS_NAME,    // 地点名称 <DeviceDesc>
+		
+		SG_CAPTURING_TYPE,  // 抓拍类型 <UploadType>
+		SG_CAPTURING_TIME,  // 抓拍时间 <WatchTime>
+		
+		SG_DEVICE_SN,       // 设备编号 <DeviceNo>
+		SG_MANUFACTURER_NO, // 厂商编号 <WorksNo>
+		
+		SG_ROAD_NO,         // 车道编号 <CarRoad>
+		
+		SG_ILLEGAL_CODE,    // 违法代码 <Wfdm>
+		
+		SG_RED_ARISE_TIME,  // 红灯亮起时间 <StartTime>
+		SG_RED_FALL_TIME,   // 红灯结束时间 <EndTime>
+	};
 	
 	private String detectManufacturer( String record )
 	{	
@@ -113,7 +111,7 @@ public class ConvertHisenseMQ
 	 * @param packType  与该数据项对应的XML标记
 	 * @return          转换为XML格式后的字符串
 	 */
-	public String convertToXMLMark( String item, int packType )
+	public String convertToXMLMark( String item, xmlType packType )
 	{
 		if ( "".equals(item) ) return item;
 		
@@ -209,26 +207,26 @@ public class ConvertHisenseMQ
 		String[] subUrls = {records[12], records[13], records[14]}; // 照片URL
 		
 		xmlData =
-				convertToXMLMark( "Z", SG_DATA_TYPE ) +              // 数据类型，卡口数据
+				convertToXMLMark( "Z", xmlType.SG_DATA_TYPE ) +              // 数据类型，卡口数据
 				detectManufacturer( records[12] ) +                  // 厂商编号
-				convertToXMLMark( records[0], SG_DATA_SOURCE ) +     // 数据来源
-				convertToXMLMark( records[1], SG_VEHICLE_LICENSE ) + // 车牌号码
-				convertToXMLMark( records[2], SG_LICENSE_TYPE ) +    // 车牌类型
-				convertToXMLMark( records[3], SG_ADDRESS_NO ) +      // 地点编号，12位
-				convertToXMLMark( records[4], SG_ADDRESS_NAME ) +    // 地点名称
-				convertToXMLMark( records[5], SG_CAPTURING_TYPE ) +  // 抓拍类型
-				convertToXMLMark( records[6], SG_DEVICE_SN ) +       // 设备编号，16位
-				convertToXMLMark( records[7], SG_ROAD_NO ) +         // 车道编号
-				convertToXMLMark( records[8], SG_VEHICLE_SPEED ) +   // 车辆速度
-				convertToXMLMark( records[9], SG_CAPTURING_TIME ) +  // 抓拍时间
-				convertToXMLMark( records[11], SG_VEHICLE_DIRECT ) + // 车辆方向
+				convertToXMLMark( records[0], xmlType.SG_DATA_SOURCE ) +     // 数据来源
+				convertToXMLMark( records[1], xmlType.SG_VEHICLE_LICENSE ) + // 车牌号码
+				convertToXMLMark( records[2], xmlType.SG_LICENSE_TYPE ) +    // 车牌类型
+				convertToXMLMark( records[3], xmlType.SG_ADDRESS_NO ) +      // 地点编号，12位
+				convertToXMLMark( records[4], xmlType.SG_ADDRESS_NAME ) +    // 地点名称
+				convertToXMLMark( records[5], xmlType.SG_CAPTURING_TYPE ) +  // 抓拍类型
+				convertToXMLMark( records[6], xmlType.SG_DEVICE_SN ) +       // 设备编号，16位
+				convertToXMLMark( records[7], xmlType.SG_ROAD_NO ) +         // 车道编号
+				convertToXMLMark( records[8], xmlType.SG_VEHICLE_SPEED ) +   // 车辆速度
+				convertToXMLMark( records[9], xmlType.SG_CAPTURING_TIME ) +  // 抓拍时间
+				convertToXMLMark( records[11], xmlType.SG_VEHICLE_DIRECT ) + // 车辆方向
 				convertToXMLUrls( subUrls ) +                        // 照片链接  
-				convertToXMLMark( records[15], SG_VEHICLE_COLOR );   // 车辆颜色
+				convertToXMLMark( records[15], xmlType.SG_VEHICLE_COLOR );   // 车辆颜色
 		
 		if ( records.length > 16 )
 			xmlData += 
-				convertToXMLMark( records[16], SG_VEHICLE_LOGO ) +   // 车辆标志
-				convertToXMLMark( records[19], SG_LICENSE_COLOR );   // 拍照颜色
+				convertToXMLMark( records[16], xmlType.SG_VEHICLE_LOGO ) +   // 车辆标志
+				convertToXMLMark( records[19], xmlType.SG_LICENSE_COLOR );   // 拍照颜色
 		
 		// 生成最终的文件数据
 		xmlPackage = xmlInfo + xmlHeader + "<Data>\n" + xmlData + "</Data>\n</Package>\n\r\n";
@@ -269,25 +267,25 @@ public class ConvertHisenseMQ
 		String[] subUrls = {records[15], records[16], records[17]}; // 照片URL
 		
 		xmlData = 
-				convertToXMLMark( "B", SG_DATA_TYPE ) +              // 数据类型，闯红灯
+				convertToXMLMark( "B", xmlType.SG_DATA_TYPE ) +              // 数据类型，闯红灯
 				detectManufacturer( records[15] ) +                  // 厂商编号
-				convertToXMLMark( records[1], SG_LICENSE_TYPE ) +    // 号牌类型
-				convertToXMLMark( records[2], SG_VEHICLE_LICENSE ) + // 车辆号牌
-				convertToXMLMark( records[3], SG_CAPTURING_TIME ) +  // 抓拍时间
-				convertToXMLMark( records[4], SG_ILLEGAL_CODE ) +    // 违法代码
-				convertToXMLMark( records[5], SG_ADDRESS_NO ) +      // 地点编号，12位
-				convertToXMLMark( records[6], SG_ADDRESS_NAME ) +    // 地点名称
-				convertToXMLMark( records[8], SG_DATA_SOURCE ) +     // 数据来源
-				convertToXMLMark( records[9], SG_CAPTURING_TYPE ) +  // 抓拍类型
-				convertToXMLMark( records[10], SG_DEVICE_SN ) +      // 设备编号，16位
-				convertToXMLMark( records[11], SG_VEHICLE_DIRECT ) + // 车辆方向
-				convertToXMLMark( records[12], SG_ROAD_NO ) +        // 车道编号
-				convertToXMLMark( records[13], SG_RED_ARISE_TIME ) + // 红灯亮起时间
-				convertToXMLMark( records[14], SG_RED_FALL_TIME ) +  // 红灯熄灭时间
+				convertToXMLMark( records[1], xmlType.SG_LICENSE_TYPE ) +    // 号牌类型
+				convertToXMLMark( records[2], xmlType.SG_VEHICLE_LICENSE ) + // 车辆号牌
+				convertToXMLMark( records[3], xmlType.SG_CAPTURING_TIME ) +  // 抓拍时间
+				convertToXMLMark( records[4], xmlType.SG_ILLEGAL_CODE ) +    // 违法代码
+				convertToXMLMark( records[5], xmlType.SG_ADDRESS_NO ) +      // 地点编号，12位
+				convertToXMLMark( records[6], xmlType.SG_ADDRESS_NAME ) +    // 地点名称
+				convertToXMLMark( records[8], xmlType.SG_DATA_SOURCE ) +     // 数据来源
+				convertToXMLMark( records[9], xmlType.SG_CAPTURING_TYPE ) +  // 抓拍类型
+				convertToXMLMark( records[10], xmlType.SG_DEVICE_SN ) +      // 设备编号，16位
+				convertToXMLMark( records[11], xmlType.SG_VEHICLE_DIRECT ) + // 车辆方向
+				convertToXMLMark( records[12], xmlType.SG_ROAD_NO ) +        // 车道编号
+				convertToXMLMark( records[13], xmlType.SG_RED_ARISE_TIME ) + // 红灯亮起时间
+				convertToXMLMark( records[14], xmlType.SG_RED_FALL_TIME ) +  // 红灯熄灭时间
 				convertToXMLUrls( subUrls, records[18] );
 		
 		if ( records.length > 20 && !"".equals( records[20]) )
-			xmlData += convertToXMLMark( records[20], SG_LICENSE_COLOR ); // 车牌颜色
+			xmlData += convertToXMLMark( records[20], xmlType.SG_LICENSE_COLOR ); // 车牌颜色
 
 		
 		// 生成最终的文件数据
@@ -295,5 +293,4 @@ public class ConvertHisenseMQ
 		
 		return xmlPackage;
 	}
-
 }

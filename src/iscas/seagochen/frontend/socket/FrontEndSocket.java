@@ -1,4 +1,4 @@
-package iscas.seagochen.frontend;
+package iscas.seagochen.frontend.socket;
 
 public abstract class FrontEndSocket {
 	
