@@ -1,6 +1,7 @@
 package iscas.seagochen.frontend.socket;
 
 import iscas.seagochen.exceptions.UnimplementedMethodException;
+import iscas.seagochen.exceptions.UnknownStringException;
 import iscas.seagochen.frontend.parse.ParseHisenseMQ;
 
 import java.io.UnsupportedEncodingException;
@@ -16,7 +17,6 @@ import javax.jms.Topic;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 
-import seagosoft.iscas.exception.UnknownStringException;
 
 public class HisenseMQSocket extends FrontEndSocket {
 	

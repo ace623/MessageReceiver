@@ -1,6 +1,7 @@
 package iscas.seagochen.frontend.parse;
 
-import seagosoft.iscas.exception.UnknownStringException;
+import iscas.seagochen.exceptions.UnknownStringException;
+
 
 public class ParseHisenseMQ {
 	public enum xmlType {
