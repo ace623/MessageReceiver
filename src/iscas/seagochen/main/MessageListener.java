@@ -7,14 +7,23 @@ public class MessageListener implements Listener, Runnable {
 	
 	private HisenseMQSocket hisenseSocket;
 	private PackageSenderSocket senderSocket;
+	private int recvmsg; // received message from MQ
+	private int sentmsg; // message re-packed and sent to server
 	
 	public void setHisenseMQ( String url, String topic, int milliseconds )
 	{
+		// default delay time is 5 seconds 
+		if ( milliseconds < 0 ) milliseconds = 1000 * 5;
+		
+		recvmsg = 0;
 		hisenseSocket = new HisenseMQSocket( url, topic, milliseconds );
 	}
 	
 	public void setSender( String servIP, int servPort )
 	{
+		// default port is 12350
+		if ( servPort < 0 ) servPort = 12350; 
+		
 		senderSocket = new PackageSenderSocket( servIP, servPort );
 	}
 	
