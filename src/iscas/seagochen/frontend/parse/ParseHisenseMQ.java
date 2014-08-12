@@ -4,7 +4,7 @@ import iscas.seagochen.exceptions.UnknownStringException;
 
 
 public class ParseHisenseMQ {
-	public enum xmlType {
+	public static enum xmlType {
 		SG_DATA_SOURCE,     // 数据来源 <XTBH>
 		SG_DATA_TYPE,       // 数据包类型 <Type>
 		

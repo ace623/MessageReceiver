@@ -1,6 +1,6 @@
 package iscas.seagochen.frontend.socket;
 
-public abstract class FrontEndSocket {
+public interface FrontEndSocket {
 	
 	/**
 	 * ≈‰÷√socket

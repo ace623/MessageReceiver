@@ -18,7 +18,7 @@ import javax.jms.Topic;
 import org.apache.activemq.ActiveMQConnectionFactory;
 
 
-public class HisenseMQSocket extends FrontEndSocket {
+public class HisenseMQSocket implements FrontEndSocket {
 	
 	// ConnectionFactory: 连接工厂，创建连接
 	private static ConnectionFactory connFactory;

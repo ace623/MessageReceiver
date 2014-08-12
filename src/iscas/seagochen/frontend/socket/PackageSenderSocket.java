@@ -6,9 +6,12 @@ import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
+import iscas.seagochen.exceptions.ConnectionFailedException;
+import iscas.seagochen.exceptions.UnimplementedMethodException;
+import iscas.seagochen.exceptions.UnknownExceptionOccurs;
 import iscas.seagochen.format.*;;
 
-public class PackageSenderSocket extends FrontEndSocket {
+public class PackageSenderSocket implements FrontEndSocket {
 	
 	private Socket socket;
 
@@ -49,12 +52,8 @@ public class PackageSenderSocket extends FrontEndSocket {
 		this.servPort     = servPort;
 	}
 	
-	public void setSocket( int sendTimes ) {
-		times = sendTimes;
-	}
-	
 	@Override
-	public void conf() throws Exception {
+	public void conf() {
 		servIP   = "127.0.0.1";
 		servPort = 123450;
 		milliseconds = 1000 * 10;
@@ -69,12 +68,17 @@ public class PackageSenderSocket extends FrontEndSocket {
 	}
 
 	@Override
-	public byte[] recv(String code) throws IOException  {
-		return recv();
+	public byte[] recv(String code) throws UnimplementedMethodException  {
+		throw new UnimplementedMethodException();
 	}
 
 	@Override
-	public byte[] recv() throws IOException {
+	public byte[] recv() throws IOException, ConnectionFailedException {
+		
+		if ( null == socket || null == input ) throw new NullPointerException();
+		
+		if ( !socket.isConnected() || socket.isClosed() || socket.isInputShutdown() )
+			throw new ConnectionFailedException();
 		
 		recvTokens = new byte[1024];
 		
@@ -88,17 +92,36 @@ public class PackageSenderSocket extends FrontEndSocket {
 		return recvTokens;
 	}
 
-	@Override
-	public void send(byte[] pack) throws Exception {
+	@Override	
+	public void send(byte[] pack) throws IOException, ConnectionFailedException {
+		
+		if ( null == socket || null == output ) throw new NullPointerException();
+		
+		if ( !socket.isConnected() || socket.isClosed() || socket.isOutputShutdown() )
+			throw new ConnectionFailedException();
+		
 		ProduceISCASPackage producer = new ProduceISCASPackage();
 		sendTokens = producer.produceISCASPackage( times, pack );
+		
+		output.write(sendTokens);
+		output.flush();
 	}
 
 	@Override
-	public void close() throws IOException {
+	public void close() throws IOException, UnknownExceptionOccurs {
 		input.close();
 		output.close();
 		socket.close();	
+		
+		if ( !socket.isInputShutdown() || !socket.isOutputShutdown() )
+			throw new UnknownExceptionOccurs( "cannot shutdown I/O" );
+		
+		if ( !socket.isClosed() )
+			throw new UnknownExceptionOccurs( "cannot shutdown socket" );
 	}
-
+	
+	public void sentTimes( int times ) {
+		this.times = times;
+	}
+	
 }
