@@ -110,9 +110,9 @@ public class HisMessageListener implements Listener, Runnable {
 			e.printStackTrace();
 		}
 		
-		HisMessageListener myHandle = new HisMessageListener();
-		thread = new Thread(myHandle);
-		thread.start();
+//		HisMessageListener myHandle = new HisMessageListener();
+//		thread = new Thread(myHandle);
+//		thread.start();
 	}
 
 	@Override
@@ -166,19 +166,16 @@ public class HisMessageListener implements Listener, Runnable {
 		int times = 0;
 		
 		while ( flag )
-		{
-			if ( timer.isTimeout() )
-			
+		{			
 			try {
 				
-				senderSocket.sentTimes(0);				
-				senderSocket.send( hisenseSocket.recv( "UTF-8") );
+				String str = new String( hisenseSocket.recv("UTF-8"), "UTF-8" );
+				System.out.println( str );
+			//	senderSocket.sentTimes(0);				
+			//	senderSocket.send( hisenseSocket.recv( "UTF-8") );
 				
 			} catch ( IOException e ) {
 				System.err.println( "cannot recv bytes from IO" );
-				e.printStackTrace();
-			} catch ( ConnectionFailedException e) {
-				System.err.println( "connection to remote device failed" );
 				e.printStackTrace();
 			} catch ( UnknownStringException e) {
 				System.err.println( "string code is not support" );
@@ -194,6 +191,15 @@ public class HisMessageListener implements Listener, Runnable {
 	
 	public static void main( String argv[] )
 	{
+		HisMessageListener listener = new HisMessageListener(
+				HisenseMQSocket.REMOTE_URL1,
+				HisenseMQSocket.HISENSE_PASSING,
+				1000 * 10,
+				"52.1.126.70",
+				12350 );
 		
+		listener.conf();
+		listener.start();
+		listener.run();
 	}
 }

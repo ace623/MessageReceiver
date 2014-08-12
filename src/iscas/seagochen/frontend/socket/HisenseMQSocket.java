@@ -53,6 +53,10 @@ public class HisenseMQSocket implements FrontEndSocket {
 	public static final String HISENSE_PASSING = "HIATMP.HISENSE.PASS.PASSINF";
 	public static final String HISENSE_ILLEGAL = "HIATMP.HISENSE.ILLEGAL";
 	
+	public static final String REMOTE_URL1 = "tcp://52.1.101.193:61616";
+	public static final String REMOTE_URL2 = "tcp://52.1.101.195:61616";
+	public static final String REMOTE_URL3 = "tcp://10.161.14.6:61616";
+	
 	public HisenseMQSocket( String remoteURL, String remoteTopic, int milliseconds )
 	{
 		this.remoteTopic = remoteTopic;

@@ -54,9 +54,9 @@ public class PackageSenderSocket implements FrontEndSocket {
 	
 	@Override
 	public void conf() {
-		servIP   = "127.0.0.1";
-		servPort = 123450;
-		milliseconds = 1000 * 10;
+//		servIP   = "127.0.0.1";
+//		servPort = 123450;
+//		milliseconds = 1000 * 10;
 	}
 
 	@Override
