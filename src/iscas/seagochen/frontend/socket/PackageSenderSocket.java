@@ -108,16 +108,10 @@ public class PackageSenderSocket implements FrontEndSocket {
 	}
 
 	@Override
-	public void close() throws IOException, UnknownExceptionOccurs {
+	public void close() throws IOException {
 		input.close();
 		output.close();
 		socket.close();	
-		
-		if ( !socket.isInputShutdown() || !socket.isOutputShutdown() )
-			throw new UnknownExceptionOccurs( "cannot shutdown I/O" );
-		
-		if ( !socket.isClosed() )
-			throw new UnknownExceptionOccurs( "cannot shutdown socket" );
 	}
 	
 	public void sentTimes( int times ) {

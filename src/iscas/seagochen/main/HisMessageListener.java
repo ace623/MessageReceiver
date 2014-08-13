@@ -12,7 +12,7 @@ import iscas.seagochen.toolbox.Timer;
 
 import javax.jms.JMSException;
 
-public class HisMessageListener implements Listener, Runnable {
+public class HisMessageListener implements Listener {
 	
 	private HisenseMQSocket hisenseSocket;
 	private PackageSenderSocket senderSocket;
@@ -20,12 +20,12 @@ public class HisMessageListener implements Listener, Runnable {
 	/**
 	 * the number of message received from Apache MQ
 	 */
-	private int recvMsgNew, recvMsgPre;
+	private long recvMsgNew, recvMsgPre;
 	
 	/**
 	 * the number of message sent to back-server
 	 */
-	private int sentMsgNew, sentMsgPre;
+	private long sentMsgNew, sentMsgPre;
 	
 	/**
 	 * running status
@@ -35,7 +35,7 @@ public class HisMessageListener implements Listener, Runnable {
 	/**
 	 * running flag
 	 */
-	private boolean flag;
+	public boolean flag;
 	
 	private Thread thread;
 	
@@ -109,10 +109,6 @@ public class HisMessageListener implements Listener, Runnable {
 			status = RunningStatus.CONNECT_REMOTE_DEVICE_FAILED;
 			e.printStackTrace();
 		}
-		
-//		HisMessageListener myHandle = new HisMessageListener();
-//		thread = new Thread(myHandle);
-//		thread.start();
 	}
 
 	@Override
@@ -123,7 +119,8 @@ public class HisMessageListener implements Listener, Runnable {
 		flag = false;
 		
 		try {
-			thread.join();
+			if ( thread != null )
+				thread.join();
 		} catch (InterruptedException e) {
 			System.err.println( "interruption failed" );
 			e.printStackTrace();
@@ -138,10 +135,6 @@ public class HisMessageListener implements Listener, Runnable {
 		} catch (IOException e) {
 			status = RunningStatus.CONNECT_REMOTE_DEVICE_FAILED;
 			e.printStackTrace();
-		} catch ( UnknownExceptionOccurs e) {
-			e.printStackTrace();
-			senderSocket = null;
-			System.gc();
 		}
 	}
 
@@ -153,46 +146,52 @@ public class HisMessageListener implements Listener, Runnable {
 		return status;
 	}
 
-	@Override
 	public void run() {
 		Timer timer = new Timer();
-		timer.setTimeout( 1000 * 5 );
+		timer.setTimeout( 1000 * 5 ); // set timeout 5s
 		
 		recvMsgNew = recvMsgPre = 0;
 		sentMsgNew = sentMsgPre = 0;
 		
-		flag = true;
+		timer.resetTimer(); // reset timer
 		
-		int times = 0;
-		
-		while ( flag )
-		{			
+		byte[] bytes;
+		while( true )
+		{
 			try {
+				bytes = hisenseSocket.recv("UTF-8");
+				if ( bytes.length <= 0 ) continue;
+				senderSocket.send(bytes);
 				
-				String str = new String( hisenseSocket.recv("UTF-8"), "UTF-8" );
-				System.out.println( str );
-			//	senderSocket.sentTimes(0);				
-			//	senderSocket.send( hisenseSocket.recv( "UTF-8") );
+				if ( bytes.length > 0 ) recvMsgNew++;
 				
-			} catch ( IOException e ) {
-				System.err.println( "cannot recv bytes from IO" );
+			} catch (JMSException e) {
 				e.printStackTrace();
-			} catch ( UnknownStringException e) {
-				System.err.println( "string code is not support" );
+			} catch (UnknownStringException e) {
 				e.printStackTrace();
-			} catch ( JMSException e) {
-				System.err.println( "recv from mq failed" );
+			} catch (ConnectionFailedException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
 				e.printStackTrace();
 			}
 			
+			bytes = null;
+			System.gc();
+			if ( timer.isTimeout() )
+			{
+				if ( recvMsgNew > recvMsgPre & sentMsgNew > sentMsgPre )
+				{
+					recvMsgPre = recvMsgNew;
+					status = RunningStatus.RUNNING_STATUS_OK; 
+				}
+			}
 		}
-		
 	}
 	
 	public static void main( String argv[] )
 	{
 		HisMessageListener listener = new HisMessageListener(
-				HisenseMQSocket.REMOTE_URL1,
+				HisenseMQSocket.REMOTE_URL2,
 				HisenseMQSocket.HISENSE_PASSING,
 				1000 * 10,
 				"52.1.126.70",
@@ -200,6 +199,7 @@ public class HisMessageListener implements Listener, Runnable {
 		
 		listener.conf();
 		listener.start();
-		listener.run();
+		listener.run();		
+		listener.stop();
 	}
 }
