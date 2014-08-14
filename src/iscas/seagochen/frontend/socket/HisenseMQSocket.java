@@ -97,7 +97,7 @@ public class HisenseMQSocket implements FrontEndSocket {
 		consumer = session.createConsumer(topic);
 	}
 
-	public byte[] recv(String code) throws JMSException, UnknownStringException 
+	public byte[] recv(String code) throws JMSException, UnknownStringException, UnsupportedEncodingException 
 	{
 		Message msg = consumer.receive(milliseconds);
 		TextMessage textMessage = (TextMessage)msg;
@@ -114,15 +114,7 @@ public class HisenseMQSocket implements FrontEndSocket {
 		}
 		
 		// 若用户指定的编码格式不用，那么采用默认的UTF-8消息格式
-		try {
-			return xml.getBytes( code );
-		} catch ( UnsupportedEncodingException e1 ) {
-			try { 
-				return xml.getBytes( "UTF-8" );
-			} catch ( UnsupportedEncodingException e2 ) {
-				return xml.getBytes();
-			}
-		}
+		return xml.getBytes( code );
 	}
 
 	public byte[] recv() throws JMSException, UnknownStringException 

@@ -43,20 +43,38 @@ public interface Listener {
 	 * 系统配置
 	 */
 	public void conf();
-	
+
 	/**
 	 * 启动连接，监听消息
 	 */
-	public void start();
+	public void connect();
 
 	/**
-	 * 停止连接，不在接收消息
+	 * 断开连接，不在接收消息
 	 */
-	public void stop();
+	public void disconnect();
+	
+	/**
+	 * 设置运行状态
+	 * @param flag
+	 */
+	public void setFlag(boolean flag);
+	
+	/**
+	 * 运行参数
+	 * @return
+	 */
+	public boolean getFlag();
 	
 	/**
 	 * 检查运行状态
 	 * @return
 	 */
-	public RunningStatus status();
+	public RunningStatus getStatus();
+	
+	/**
+	 * 设置运行状态
+	 * @param status
+	 */
+	public void setStatus(RunningStatus status);
 }

@@ -1,15 +1,15 @@
 package iscas.seagochen.frontend.socket;
 
+import iscas.seagochen.exceptions.ConnectionFailedException;
+import iscas.seagochen.exceptions.UnimplementedMethodException;
+import iscas.seagochen.exceptions.UnknownStringException;
+import iscas.seagochen.format.ProduceISCASPackage;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
-
-import iscas.seagochen.exceptions.ConnectionFailedException;
-import iscas.seagochen.exceptions.UnimplementedMethodException;
-import iscas.seagochen.exceptions.UnknownExceptionOccurs;
-import iscas.seagochen.format.*;;
 
 public class PackageSenderSocket implements FrontEndSocket {
 	
@@ -25,6 +25,12 @@ public class PackageSenderSocket implements FrontEndSocket {
 	private int    servPort;
 	private int    milliseconds;
 	private int    times;
+	
+	public PackageSenderSocket()
+	{
+		this.milliseconds = this.servPort = 0;
+		this.servIP = "0.0.0.0";
+	}
 	
 	public PackageSenderSocket( String servIP, int servPort, int milliseconds )
 	{
@@ -54,21 +60,24 @@ public class PackageSenderSocket implements FrontEndSocket {
 	
 	@Override
 	public void conf() {
-//		servIP   = "127.0.0.1";
-//		servPort = 123450;
-//		milliseconds = 1000 * 10;
+		try {
+			throw new UnimplementedMethodException("conf is not implemented");
+		} catch (UnimplementedMethodException e) {
+			e.printStackTrace();
+		}
 	}
 
 	@Override
-	public void connect() throws UnknownHostException, IOException  {
+	public void connect() throws UnknownHostException, IOException  {		
 		socket = new Socket( servIP, servPort );
-		socket.setSoTimeout( milliseconds );
 		input  = new DataInputStream( socket.getInputStream() );
 		output = new DataOutputStream( socket.getOutputStream() );
+		
+		socket.setSoTimeout( milliseconds );
 	}
 
 	@Override
-	public byte[] recv(String code) throws UnimplementedMethodException  {
+	public byte[] recv(String code) throws UnimplementedMethodException {
 		throw new UnimplementedMethodException();
 	}
 
@@ -93,7 +102,7 @@ public class PackageSenderSocket implements FrontEndSocket {
 	}
 
 	@Override	
-	public void send(byte[] pack) throws IOException, ConnectionFailedException {
+	public void send(byte[] pack) throws IOException, ConnectionFailedException, UnknownStringException {
 		
 		if ( null == socket || null == output ) throw new NullPointerException();
 		
@@ -103,24 +112,21 @@ public class PackageSenderSocket implements FrontEndSocket {
 		ProduceISCASPackage producer = new ProduceISCASPackage();
 		sendTokens = producer.produceISCASPackage( times, pack );
 		
+		if ( sendTokens.length < 60 )
+			throw new UnknownStringException("token length is less than 60");
+		
 		output.write(sendTokens);
 		output.flush();
 	}
 
 	@Override
-	public void close() throws IOException, UnknownExceptionOccurs {
+	public void close() throws IOException {
 		input.close();
 		output.close();
 		socket.close();	
-		
-		if ( !socket.isInputShutdown() || !socket.isOutputShutdown() )
-			throw new UnknownExceptionOccurs( "cannot shutdown I/O" );
-		
-		if ( !socket.isClosed() )
-			throw new UnknownExceptionOccurs( "cannot shutdown socket" );
 	}
 	
-	public void sentTimes( int times ) {
+	public void times( int times ) {
 		this.times = times;
 	}
 	
