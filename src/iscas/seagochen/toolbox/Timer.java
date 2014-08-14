@@ -23,19 +23,33 @@ public class Timer {
 	// 时长
 	protected long duration;
 	
+	private StringBuffer strbuf;
+	
 	public Timer()
 	{
 		start = last = hold = 0;
 		milliseconds = seconds = minuters = 0;
 		hours = days = months = years = 0;
-		duration = 0;	
+		duration = 0;
+		
+		resetTimer();
 	}
 	
+	/**
+	 * 打印当前的过程时间
+	 * @param end
+	 * @param start
+	 */
 	public void printDuration( long end, long start ) {
 		duration = end - start;
 		System.out.println( duration + "ms" );
 	}
 	
+	/**
+	 * 给定结束时间与开始时间，将经过的毫秒时间转换为年月日时分秒
+	 * @param end
+	 * @param start
+	 */
 	public void formattedDuration( long end, long start ) {
 		duration = end - start;
 		
@@ -54,10 +68,24 @@ public class Timer {
 		months   %= 12;
 	}
 	
-	public void printFormattedDuration( long end, long start ) {
+	public String getFormattedCurrent()
+	{
+		last = System.currentTimeMillis();
+		String string = getFormattedDuration(last, hold);
+		hold = last;
+		return string;
+	}
+	
+	public String getFormattedDuration()
+	{
+		last = System.currentTimeMillis();
+		return getFormattedDuration(last, start);
+	}
+
+	private String getFormattedDuration( long end, long start ) {
 		formattedDuration(end, start);
 		
-		StringBuffer strbuf = new StringBuffer();
+		strbuf = new StringBuffer();
 		
 		if ( years > 0 )
 			strbuf.append( years + "y" + months + "m" + days + "d" + 
@@ -95,7 +123,11 @@ public class Timer {
 			}
 		}
 		
-		System.out.println( strbuf.toString() );
+		return strbuf.toString();
+	}
+	
+	private void printFormattedDuration( long end, long start ) {
+		System.out.println( getFormattedDuration(end, start) );
 	}
 	
 	/**
