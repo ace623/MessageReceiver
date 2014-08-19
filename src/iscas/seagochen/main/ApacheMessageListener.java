@@ -186,18 +186,4 @@ public class ApacheMessageListener implements Listener, Runnable {
 			System.out.println( "----------------------------------" );
 		}
 	}
-	
-	public static void main( String argv[] )
-	{
-		ApacheMessageListener listener = new ApacheMessageListener(
-				HisenseMQSocket.REMOTE_URL1,
-				HisenseMQSocket.HISENSE_PASSING,
-				1000 * 10,
-				"52.1.126.70",
-				12350 );
-		
-		listener.conf();
-		listener.connect();
-		listener.disconnect();
-	}
 }
