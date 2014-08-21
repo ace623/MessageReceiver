@@ -1,4 +1,4 @@
-package iscas.seagochen.GUI;
+package iscas.seagochen.ui;
 
 import java.awt.Color;
 import java.awt.FlowLayout;
