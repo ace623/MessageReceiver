@@ -50,12 +50,8 @@ public class Console implements Runnable {
 	}
 	
 	public void setParams() 
-	{
-		String remoteUrlInfo = "";
-		String remoteTopicInfo = "";
-		
-		
-		System.out.println( remoteUrlInfo );
+	{		
+		System.out.println( Constant.CHOSE_MQ_SERVURL_STR );
 		input = scanner.next();
 	}
 	

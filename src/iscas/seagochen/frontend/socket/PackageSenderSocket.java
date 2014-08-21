@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
-public class PackageSenderSocket implements FrontEndSocket {
+public class PackageSenderSocket implements SocketInterfacec {
 	
 	private Socket socket;
 
