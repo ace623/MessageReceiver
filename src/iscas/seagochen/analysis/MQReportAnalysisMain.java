@@ -1,6 +1,7 @@
 package iscas.seagochen.analysis;
 
 import iscas.seagochen.frontend.socket.HisenseMQAnalysisSocket;
+import iscas.seagochen.frontend.socket.HisenseMQSocket;
 
 import java.io.UnsupportedEncodingException;
 
@@ -30,7 +31,7 @@ public class MQReportAnalysisMain {
 			System.exit( 1 );
 		}
 		
-		for ( int i = 0; i < 1000; i++ )
+		while( true )
 		{
 			try {
 				System.out.println( new String(socket.recv("UTF-8"), "UTF-8") );
@@ -44,7 +45,10 @@ public class MQReportAnalysisMain {
 	
 	public static void main( String argv[] )
 	{
+		MQReportAnalysisMain analysis = new MQReportAnalysisMain(
+				HisenseMQSocket.REMOTE_URL1, HisenseMQSocket.HISENSE_PASSING, 10 * 1000);
 		
+		analysis.recordMessage();
 	}
 
 }
