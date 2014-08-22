@@ -1,6 +1,6 @@
 package iscas.seagochen.main;
 
-public interface Listener {
+public interface ListenerInterface {
 	
 	public static enum RunningStatus {
 		/**

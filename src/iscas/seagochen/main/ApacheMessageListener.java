@@ -12,13 +12,13 @@ import java.io.UnsupportedEncodingException;
 
 import javax.jms.JMSException;
 
-public class ApacheMessageListener implements Listener, Runnable {
+public class ApacheMessageListener implements ListenerInterface, Runnable {
 	
 	private HisenseMQSocket hisenseSocket;
 	private ISCASOlderVersionSocket olderSocket;
 
 	private long amountOfIncome, amountOfOutput;
-	private Listener.RunningStatus status;
+	private ListenerInterface.RunningStatus status;
 	public boolean flag;
 	
 	private Thread thread;
@@ -64,10 +64,9 @@ public class ApacheMessageListener implements Listener, Runnable {
 	@Override
 	public void connect() {
 		if ( hisenseSocket == null  || olderSocket == null ) 
-			throw new NullPointerException( "cannot start uninitialized variables" );
+			throw new NullPointerException( "cannot use uninitialized variables" );
 		
 		try {
-//			senderSocket.connect();
 			hisenseSocket.connect();
 		} catch (JMSException e) {
 			setStatus( RunningStatus.CONNECT_REMOTE_DEVICE_FAILED );
@@ -185,19 +184,5 @@ public class ApacheMessageListener implements Listener, Runnable {
 			System.out.println( "duration: " + timer.getFormattedDuration() );
 			System.out.println( "----------------------------------" );
 		}
-	}
-	
-	public static void main( String argv[] )
-	{
-		ApacheMessageListener listener = new ApacheMessageListener(
-				HisenseMQSocket.REMOTE_URL1,
-				HisenseMQSocket.HISENSE_PASSING,
-				1000 * 10,
-				"52.1.126.70",
-				12350 );
-		
-		listener.conf();
-		listener.connect();
-		listener.disconnect();
 	}
 }
